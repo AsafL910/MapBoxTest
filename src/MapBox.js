@@ -29,10 +29,3 @@ const MapBox = () => {
 };
 
 export default MapBox;
-
-// const accessToken = "pk.eyJ1IjoiYmFydWNoZ2luemJ1cmciLCJhIjoiY2trMTFja3FoMG4wOTJ2cnJnZzU5bDc2NSJ9.K3acyuJruEbTLgDD5KrC2A"
-// const tilesetId = "mapbox.mapbox-streets-v8"
-// const zoom = 1
-// const x = 0
-// const  y = 0
-// const api = `https://api.mapbox.com/v4/${tilesetId}/${zoom}/${x}/${y}.mvt?access_token=${accessToken}`
