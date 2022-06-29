@@ -1,31 +1,164 @@
-import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-loader-syntax
+import maplibregl from "maplibre-gl"; // eslint-disable-line import/no-webpack-loader-syntax
 import { useState, useEffect, useRef } from "react";
+import { Button } from "react-bootstrap";
+import 'maplibre-gl/dist/maplibre-gl.css';
+import './map.css'
+import markerImage from './Map/images/map-marker-icon.png'
+import selfDataImage from './Map/images/Plane1.png'
+import otherPlanesImage from './Map/images/Plane2.png'
 
-mapboxgl.accessToken =
-  "pk.eyJ1IjoiYmFydWNoZ2luemJ1cmciLCJhIjoiY2trMTFja3FoMG4wOTJ2cnJnZzU5bDc2NSJ9.K3acyuJruEbTLgDD5KrC2A";
-
-const MapBox = () => {
+const Map = ({ onAddPlane, setMousePosition, otherPlaneCount}) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const [lng, setLng] = useState(-70.9);
-  const [lat, setLat] = useState(42.35);
+  const [lat, setLat] = useState(32);
+  const [lng, setLng] = useState(35);
   const [zoom, setZoom] = useState(9);
+  const [isFetchingSelfData, setIsFetchingSelfData] = useState(false);
+  const [refreshIntervalId, setRefreshIntervalId] = useState();
 
   useEffect(() => {
-    if (map.current) return; // initialize map only once
-    map.current = new mapboxgl.Map({
+    map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v11",
+      style: "http://localhost:3650/api/maps/israel/style.json",
       center: [lng, lat],
       zoom: zoom,
     });
-  });
+
+    map.current.on('load', () => 
+      map.current.resize()
+    );
+
+    map.current.on('mousemove', (e) => {
+      setMousePosition({lng: e.lngLat.lng, lat: e.lngLat.lat})
+    });
+    
+    map.current.loadImage(
+      markerImage,
+      function (error, image) {
+      if (error) throw error;
+      map.current.addImage('marker', image);
+
+      map.current.addSource('selfData', { type: 'geojson', data: {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [lat, lng]
+        },
+        properties: {
+
+        }
+      } });
+      map.current.addLayer({
+        'id': 'selfData',
+        'type': 'symbol',
+        'source': 'selfData',
+        'layout': {
+        'icon-image': 'marker',
+        'icon-size': 0.03
+        }
+      });
+      }
+      );
+
+      map.current.loadImage(
+        selfDataImage,
+        function (error, image) {
+        if (error) throw error;
+        map.current.addImage('selfDataIcon', image);
+        
+        map.current.addSource('otherPlanesData', { type: 'geojson', data: {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {
+                population: 200
+              },
+              geometry: {
+                type: "Point",
+                coordinates: [-112.0372, 46.608058]
+              }
+            }
+          ]
+          
+        } });
+        map.current.addLayer({
+          'id': 'otherPlanes',
+          'type': 'symbol',
+          'source': 'otherPlanesData',
+          'layout': {
+          'icon-image': 'selfDataIcon',
+          'icon-size': 0.1
+          }
+        });
+        }
+        );
+
+   
+  },[]);
+
+  const fetchForSelfData = async () => {
+    if (!isFetchingSelfData)
+    {
+      setIsFetchingSelfData(true);
+      setInterval(async ()=> {
+        const data = await (await fetch('https://localhost:5001/self-position')).json()
+        map.current.getSource('selfData').setData({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [data.position.latitude, data.position.longitude]
+          },
+          properties: {
+            "callSign": data.callSign
+          }
+        });
+        //console.log(`fetch took ${Math.round(endTime - startTime)} milliseconds`)
+      },100)
+    }
+  }
+
+  const fetchForOtherPlanes = async () => 
+  {    
+    clearInterval(refreshIntervalId);
+    
+    const intervalId = setInterval(async ()=> {
+      const startTime = performance.now()
+      const data = await (await fetch(`https://localhost:5001/multi-position/${otherPlaneCount}`)).json()
+      const endTime = performance.now()
+      const parsedData = data.map((a) => {
+        return {
+          type: "Feature",
+          properties: {
+            callSign: a.callSign,
+          },
+          geometry: {
+            type: "Point",
+            coordinates: [a.position.latitude, a.position.longitude],
+          },
+        };
+      });
+
+      map.current.getSource('otherPlanesData').setData({
+        type: "FeatureCollection",
+        features: [...parsedData]
+      });
+     
+    },100)
+
+    setRefreshIntervalId(intervalId)
+  }
 
   return (
-    <div>
-      <div ref={mapContainer} className="map-container" style={{height: "1440px"}} />
-    </div>
-    );
+    <>
+      <Button onClick={fetchForOtherPlanes}>FETCH ALL</Button>
+      {!isFetchingSelfData && <Button onClick={fetchForSelfData}>Fetch SelfData</Button>}
+      <div
+        ref={mapContainer}
+        className="map-container"
+      />
+    </>
+  );
 };
 
-export default MapBox;
+export default Map;
