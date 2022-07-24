@@ -1,0 +1,16 @@
+.clicked-coord-label{
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    background: white;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    height: 30px;
+
+
+}
+
+Map {
+    height: 100%;
+}

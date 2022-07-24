@@ -1,21 +1,31 @@
-import Map from "./MapBox.js"
-import PlaneCounter from "./components/PlaneCounter.js";
-import { useState } from "react";
+import Map from './MapBox.js'
+import PlaneCounter from './components/PlaneCounter.js'
+import { useState, useEffect } from 'react'
+import './App.css'
 
 const App = () => {
-
-  const [mousePosition, setMousePosition] = useState({lat: 0, lng: 0, height: 0})
-  const [planeCount, setPlaneCount] = useState(0);
+  useEffect(() => {})
+  const [mousePosition, setMousePosition] = useState({
+    lat: 0,
+    lng: 0,
+    height: 0,
+  })
   return (
     <>
-    <Map onAddPlane={()=> console.log("Added Plane")} setMousePosition={setMousePosition} otherPlaneCount={planeCount}/>
-    <div style={{position: "absolute", fontFamily: "Arial"}}>
-      <PlaneCounter planeCount={planeCount} setPlaneCount={setPlaneCount}/>
-      <h3>{`lng: ${ mousePosition.lng},
-            lat: ${mousePosition.lat}`}</h3>
-    </div>
+      <Map
+        style={{ height: '100%' }}
+        setMousePosition={setMousePosition}
+      />
+      {/* <div style={{ position: 'absolute', backgroundColor: "red", fontFamily: 'Arial' }}>
+        <PlaneCounter planeCount={planeCount} setPlaneCount={setPlaneCount} />
+      </div> */}
+
+      <div className="clicked-coord-label">
+        <p>{`${mousePosition.lng.toFixed(5)},
+            ${mousePosition.lat.toFixed(5)}`}</p>
+      </div>
     </>
-  );
+  )
 }
 
-export default App;
+export default App
