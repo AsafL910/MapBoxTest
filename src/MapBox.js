@@ -1,4 +1,5 @@
 import maplibregl from 'maplibre-gl' // eslint-disable-line import/no-webpack-loader-syntax
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import { useState, useEffect, useRef } from 'react'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './MapBox.css'
@@ -8,6 +9,8 @@ import ConnectingAirportsIcon from '@mui/icons-material/ConnectingAirports'
 import PlaneCounter from './components/PlaneCounter'
 import ExploreIcon from '@mui/icons-material/Explore'
 import MapIcon from '@mui/icons-material/Map'
+import CrisisAlertIcon from '@mui/icons-material/CrisisAlert'
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
 const Map = ({ setMousePosition }) => {
   const [isFetchingSelfData, setIsFetchingSelfData] = useState(false)
@@ -29,6 +32,24 @@ const Map = ({ setMousePosition }) => {
       pitch: 0,
     })
 
+    var draw = new MapboxDraw()
+
+    // Map#addControl takes an optional second argument to set the position of the control.
+    // If no position is specified the control defaults to `top-right`. See the docs
+    // for more details: https://docs.mapbox.com/mapbox-gl-js/api/#map#addcontrol
+
+    initMap.addControl(draw, 'top-left')
+
+    const entityCreated = (e) => {
+      var data = draw.getAll()
+      if (data.features.length > 0) {
+        console.log(JSON.stringify(data.features))
+      }
+    }
+    initMap.on('draw.create', entityCreated)
+    initMap.on('draw.update', () => console.log('draw.update'))
+    initMap.on('draw.delete', () => console.log('draw.delete'))
+
     initMap.on('load', () => initMap.resize())
     initMap.on('mousemove', (e) =>
       setMousePosition({ lng: e.lngLat.lng, lat: e.lngLat.lat }),
@@ -46,7 +67,7 @@ const Map = ({ setMousePosition }) => {
       isCenter.current = false
     })
 
-    initMap.loadImage(require('./assets/map-marker-icon.png'), function (error, image) {
+    initMap.loadImage(require('./assets/pngegg.png'), function (error, image) {
       if (error) throw error
       initMap.addImage('mapMarker', image)
 
@@ -65,7 +86,8 @@ const Map = ({ setMousePosition }) => {
         layout: {
           'icon-allow-overlap': true,
           'icon-image': 'mapMarker',
-          'icon-size': 0.03,
+          'icon-size': 0.065,
+          'icon-anchor': 'bottom',
         },
       })
     })
@@ -207,28 +229,28 @@ const Map = ({ setMousePosition }) => {
   }
 
   const fetchForObstacles = async () => {
-      const data = await (
-        await fetch(`https://localhost:6001/obstacles/${100}`)
-      ).json()
-      const parsedData = data.map((a) => {
-        return {
-          type: 'Feature',
-          properties: {
-            callSign: a.name,
-            description: a.description,
-            heightMeters: a.heightMeters
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: [a.position.longitude, a.position.latitude],
-          },
-        }
-      })
+    const data = await (
+      await fetch(`https://localhost:6001/obstacles/${100}`)
+    ).json()
+    const parsedData = data.map((a) => {
+      return {
+        type: 'Feature',
+        properties: {
+          callSign: a.name,
+          description: a.description,
+          heightMeters: a.heightMeters,
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [a.position.longitude, a.position.latitude],
+        },
+      }
+    })
 
-      mapRef.current.getSource('obstacleData').setData({
-        type: 'FeatureCollection',
-        features: [...parsedData],
-      })
+    mapRef.current.getSource('obstacleData').setData({
+      type: 'FeatureCollection',
+      features: [...parsedData],
+    })
   }
 
   const sideBarBtns = [
@@ -271,7 +293,7 @@ const Map = ({ setMousePosition }) => {
     },
     {
       key: 'obstacles',
-      icon: <MapIcon fontSize="large" />,
+      icon: <CrisisAlertIcon fontSize="large" />,
       onClick: fetchForObstacles,
       des: 'Fetch obstacles',
       enable: true,
