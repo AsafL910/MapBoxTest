@@ -11,6 +11,9 @@ import ExploreIcon from '@mui/icons-material/Explore'
 import MapIcon from '@mui/icons-material/Map'
 import CrisisAlertIcon from '@mui/icons-material/CrisisAlert'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
+import { FPSControl } from "mapbox-gl-fps/lib/MapboxFPS.min";
+import { w3cwebsocket as W3CWebSocket } from "websocket";
+
 
 const Map = ({ setMousePosition }) => {
   const [isFetchingSelfData, setIsFetchingSelfData] = useState(false)
@@ -144,6 +147,7 @@ const Map = ({ setMousePosition }) => {
           'icon-rotation-alignment': 'map',
           'icon-rotate': ['get', 'trueTrack'],
         },
+        minzoom: 6,
       })
 
       initMap.on('click', 'otherPlanes', (e) =>
@@ -161,31 +165,40 @@ const Map = ({ setMousePosition }) => {
       )
     })
 
+    const fpsControl = new FPSControl();
+    initMap.addControl(fpsControl, "top-right");
+
     setMap(initMap)
   }, [])
 
   const fetchForSelfData = async () => {
     if (!isFetchingSelfData) {
       setIsFetchingSelfData(true)
-      setInterval(async () => {
-        const data = await (
-          await fetch('https://localhost:6001/self-position')
-        ).json()
+
+      const selfDataClient = new W3CWebSocket('ws://localhost:4000/selfPosition');
+      selfDataClient.onopen = () => {
+        console.log("Client Connected to SelfData!");
+      };
+      selfDataClient.onclose = () => {
+        console.log("connection to SelfData closed!");
+      };
+      selfDataClient.onmessage = (message) => {
+        const data = JSON.parse(message.data);
         mapRef.current.getSource('selfData').setData({
           type: 'Feature',
           geometry: {
             type: 'Point',
-            coordinates: [data.position.longitude, data.position.latitude],
+            coordinates: [data.Position.Longitude, data.Position.Latitude],
           },
           properties: {
-            callSign: data.callSign,
-            trueTrack: data.trueTrack,
+            callSign: data.CallSign,
+            trueTrack: data.TrueTrack,
           },
         })
         if (isCenter.current) {
           center()
         }
-      }, 33)
+      }
     }
   }
 
@@ -219,7 +232,7 @@ const Map = ({ setMousePosition }) => {
         }
       })
 
-      mapRef.current.getSource('otherPlanesData').setData({
+      mapRef.current.getSource('otherPlanesData')?.setData({
         type: 'FeatureCollection',
         features: [...parsedData],
       })
