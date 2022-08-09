@@ -29,7 +29,7 @@ const Map = ({ setMousePosition }) => {
   useEffect(() => {
     const initMap = new maplibregl.Map({
       container: mapElement.current,
-      style: 'http://localhost:3650/api/maps/israel_1/style.json',
+      style: 'http://maptiler:3650/api/maps/israel_1/style.json',
       center: [35, 32],
       zoom: 9,
       pitch: 0,
@@ -175,7 +175,7 @@ const Map = ({ setMousePosition }) => {
     if (!isFetchingSelfData) {
       setIsFetchingSelfData(true)
 
-      const selfDataClient = new W3CWebSocket('ws://localhost:4000/selfPosition');
+      const selfDataClient = new W3CWebSocket('ws://selfdata:4000/selfPosition');
       selfDataClient.onopen = () => {
         console.log("Client Connected to SelfData!");
       };
@@ -216,7 +216,7 @@ const Map = ({ setMousePosition }) => {
 
     const intervalId = setInterval(async () => {
       const data = await (
-        await fetch(`https://localhost:6001/multi-position/${planeCount}`)
+        await fetch(`http://position-provider:5000/multi-position/${planeCount}`)
       ).json()
       const parsedData = data.map((a) => {
         return {
@@ -243,7 +243,7 @@ const Map = ({ setMousePosition }) => {
 
   const fetchForObstacles = async () => {
     const data = await (
-      await fetch(`https://localhost:6001/obstacles/${100}`)
+      await fetch(`http://position-provider:5000/obstacles/${1000}`)
     ).json()
     const parsedData = data.map((a) => {
       return {

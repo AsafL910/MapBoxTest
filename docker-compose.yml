@@ -1,0 +1,33 @@
+services: 
+  maptiler:
+    image: maptiler/server_israel
+    container_name: maptiler
+    ports:
+      - 3650:3650
+    mem_limit: 500m
+  position-provider:
+    image: prodactive-dev/position-provider
+    container_name: position-provider
+    ports:
+        - '5000:5000'
+        - '5001:5001'
+    environment:
+        - 'ASPNETCORE_HTTP_PORT=http://+:5001'
+        - 'ASPNETCORE_URLS=http://+:5000'
+    mem_limit: 300m
+  mapbox:
+    container_name: frontend
+    ports:
+        - '3000:3000'
+    image: mapbox:latest
+    mem_limit: 1g
+  wd1:
+    container_name: watchdog
+    image: wd1
+    mem_limit: 100m
+  selfdata:
+    container_name: selfdata
+    ports:
+        - '4000:4000'
+    image: selfdata
+    mem_limit: 100m
