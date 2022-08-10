@@ -10,6 +10,7 @@ import PlaneCounter from './components/PlaneCounter'
 import ExploreIcon from '@mui/icons-material/Explore'
 import MapIcon from '@mui/icons-material/Map'
 import CrisisAlertIcon from '@mui/icons-material/CrisisAlert'
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import { FPSControl } from "mapbox-gl-fps/lib/MapboxFPS.min";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
@@ -29,7 +30,7 @@ const Map = ({ setMousePosition }) => {
   useEffect(() => {
     const initMap = new maplibregl.Map({
       container: mapElement.current,
-      style: 'http://maptiler:3650/api/maps/israel_1/style.json',
+      style: 'http://localhost:3650/api/maps/israel_1/style.json',
       center: [35, 32],
       zoom: 9,
       pitch: 0,
@@ -165,6 +166,36 @@ const Map = ({ setMousePosition }) => {
       )
     })
 
+    initMap.loadImage(require('./assets/mockPlane.png'), function (error, image) {
+      if (error) throw error
+      initMap.addImage('mockPlane', image)
+
+      initMap.addSource('mockData', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [],
+          },
+          properties: {},
+        },
+      })
+
+      initMap.addLayer({
+        id: 'mockData',
+        type: 'symbol',
+        source: 'mockData',
+        layout: {
+          'icon-allow-overlap': true,
+          'icon-rotation-alignment': 'map',
+          'icon-rotate': ['get', 'trueTrack'],
+          'icon-image': 'mockPlane',
+          'icon-size': 0.03,
+        },
+      })
+    })
+
     const fpsControl = new FPSControl();
     initMap.addControl(fpsControl, "top-right");
 
@@ -175,7 +206,7 @@ const Map = ({ setMousePosition }) => {
     if (!isFetchingSelfData) {
       setIsFetchingSelfData(true)
 
-      const selfDataClient = new W3CWebSocket('ws://selfdata:4000/selfPosition');
+      const selfDataClient = new W3CWebSocket('ws://host.docker.internal:4000/selfPosition');
       selfDataClient.onopen = () => {
         console.log("Client Connected to SelfData!");
       };
@@ -216,7 +247,7 @@ const Map = ({ setMousePosition }) => {
 
     const intervalId = setInterval(async () => {
       const data = await (
-        await fetch(`http://position-provider:5000/multi-position/${planeCount}`)
+        await fetch(`http://host.docker.internal:5000/multi-position/${planeCount}`)
       ).json()
       const parsedData = data.map((a) => {
         return {
@@ -243,7 +274,7 @@ const Map = ({ setMousePosition }) => {
 
   const fetchForObstacles = async () => {
     const data = await (
-      await fetch(`http://position-provider:5000/obstacles/${1000}`)
+      await fetch(`http://host.docker.internal:5000/obstacles/${1000}`)
     ).json()
     const parsedData = data.map((a) => {
       return {
@@ -311,6 +342,13 @@ const Map = ({ setMousePosition }) => {
       des: 'Fetch obstacles',
       enable: true,
     },
+    {
+      key: 'mockDataFetch',
+      icon: <MonitorHeartIcon fontSize="large" />,
+      onClick: fetchForMockData,
+      des: 'Fetch mockData',
+      enable: true,
+    }
   ]
 
   const setMapRotation = (ang) => {
