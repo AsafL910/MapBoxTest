@@ -1,365 +1,455 @@
-import maplibregl from 'maplibre-gl' // eslint-disable-line import/no-webpack-loader-syntax
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
-import { useState, useEffect, useRef } from 'react'
-import 'maplibre-gl/dist/maplibre-gl.css'
-import './MapBox.css'
-import AdjustIcon from '@mui/icons-material/Adjust'
-import AirplanemodeActiveIcon from '@mui/icons-material/AirplanemodeActive'
-import ConnectingAirportsIcon from '@mui/icons-material/ConnectingAirports'
-import PlaneCounter from './components/PlaneCounter'
-import ExploreIcon from '@mui/icons-material/Explore'
-import MapIcon from '@mui/icons-material/Map'
-import CrisisAlertIcon from '@mui/icons-material/CrisisAlert'
-import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
-import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
+import maplibregl from "maplibre-gl"; // eslint-disable-line import/no-webpack-loader-syntax
+import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import { useState, useEffect, useRef } from "react";
+import "maplibre-gl/dist/maplibre-gl.css";
+import "./MapBox.css";
+import AdjustIcon from "@mui/icons-material/Adjust";
+import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
+import ConnectingAirportsIcon from "@mui/icons-material/ConnectingAirports";
+import PlaneCounter from "./components/PlaneCounter";
+import ExploreIcon from "@mui/icons-material/Explore";
+import MapIcon from "@mui/icons-material/Map";
+import CrisisAlertIcon from "@mui/icons-material/CrisisAlert";
+import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
+import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import { FPSControl } from "mapbox-gl-fps/lib/MapboxFPS.min";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
-
+import entityData from './assets/entities.json'
 
 const Map = ({ setMousePosition }) => {
-  const [isFetchingSelfData, setIsFetchingSelfData] = useState(false)
-  const [map, setMap] = useState()
-  const [refreshIntervalId, setRefreshIntervalId] = useState()
-  const mapRef = useRef()
-  mapRef.current = map
-  const isCenter = useRef(false)
-  const mapElement = useRef()
-  const [planeCount, setPlaneCount] = useState(0)
-  const pitch = useRef(0)
+  const [isFetchingSelfData, setIsFetchingSelfData] = useState(false);
+  const [isMonitoringMockData, setIsMonitoringMockData] = useState(false);
+  const [map, setMap] = useState();
+  const [refreshIntervalId, setRefreshIntervalId] = useState();
+  const [isfetchingAllPlanes, setIsFetchingAllPlanes] = useState(false)
+  const mapRef = useRef();
+  mapRef.current = map;
+  const isCenter = useRef(false);
+  const mapElement = useRef();
+  const [planeCount, setPlaneCount] = useState(0);
+  const pitch = useRef(0);
 
   useEffect(() => {
     const initMap = new maplibregl.Map({
       container: mapElement.current,
-      style: 'http://localhost:3650/api/maps/israel_1/style.json',
+      style: "http://localhost:3650/api/maps/israel_1/style.json",
       center: [35, 32],
       zoom: 9,
       pitch: 0,
-    })
+    });
 
-    var draw = new MapboxDraw()
+    var draw = new MapboxDraw();
 
     // Map#addControl takes an optional second argument to set the position of the control.
     // If no position is specified the control defaults to `top-right`. See the docs
     // for more details: https://docs.mapbox.com/mapbox-gl-js/api/#map#addcontrol
 
-    initMap.addControl(draw, 'top-left')
+    initMap.addControl(draw, "top-left");
 
     const entityCreated = (e) => {
-      var data = draw.getAll()
+      var data = draw.getAll();
       if (data.features.length > 0) {
-        console.log(JSON.stringify(data.features))
+        console.log(JSON.stringify(data.features));
       }
-    }
-    initMap.on('draw.create', entityCreated)
-    initMap.on('draw.update', () => console.log('draw.update'))
-    initMap.on('draw.delete', () => console.log('draw.delete'))
+    };
+    initMap.on("draw.create", entityCreated);
+    initMap.on("draw.update", () => console.log("draw.update"));
+    initMap.on("draw.delete", () => console.log("draw.delete"));
 
-    initMap.on('load', () => initMap.resize())
-    initMap.on('mousemove', (e) =>
-      setMousePosition({ lng: e.lngLat.lng, lat: e.lngLat.lat }),
-    )
+    initMap.on("load", () => initMap.resize());
+    initMap.on("mousemove", (e) =>
+      setMousePosition({ lng: e.lngLat.lng, lat: e.lngLat.lat })
+    );
 
-    initMap.on('drag', () => {
-      isCenter.current = false
-    })
+    initMap.on("drag", () => {
+      isCenter.current = false;
+    });
 
-    initMap.on('mousedown', () => {
-      isCenter.current = false
-    })
+    initMap.on("mousedown", () => {
+      isCenter.current = false;
+    });
 
-    initMap.on('wheel', () => {
-      isCenter.current = false
-    })
+    initMap.on("wheel", () => {
+      isCenter.current = false;
+    });
 
-    initMap.loadImage(require('./assets/pngegg.png'), function (error, image) {
-      if (error) throw error
-      initMap.addImage('mapMarker', image)
+    initMap.loadImage(require("./assets/pngegg.png"), function (error, image) {
+      if (error) throw error;
+      initMap.addImage("mapMarker", image);
 
-      initMap.addSource('obstacleData', {
-        type: 'geojson',
+      initMap.addSource("obstacleData", {
+        type: "geojson",
         data: {
-          type: 'FeatureCollection',
+          type: "FeatureCollection",
           features: [],
         },
-      })
+      });
 
       initMap.addLayer({
-        id: 'obstacleData',
-        type: 'symbol',
-        source: 'obstacleData',
+        id: "obstacleData",
+        type: "symbol",
+        source: "obstacleData",
         layout: {
-          'icon-allow-overlap': true,
-          'icon-image': 'mapMarker',
-          'icon-size': 0.065,
-          'icon-anchor': 'bottom',
+          "icon-allow-overlap": true,
+          "icon-image": "mapMarker",
+          "icon-size": 0.065,
+          "icon-anchor": "bottom",
         },
-      })
-    })
+      });
+    });
 
-    initMap.loadImage(require('./assets/Plane2.png'), function (error, image) {
-      if (error) throw error
-      initMap.addImage('selfPlane', image)
+    initMap.loadImage(require("./assets/Plane2.png"), function (error, image) {
+      if (error) throw error;
+      initMap.addImage("selfPlane", image);
 
-      initMap.addSource('selfData', {
-        type: 'geojson',
+      initMap.addSource("selfData", {
+        type: "geojson",
         data: {
-          type: 'Feature',
+          type: "Feature",
           geometry: {
-            type: 'Point',
+            type: "Point",
             coordinates: [],
           },
           properties: {},
         },
-      })
+      });
 
       initMap.addLayer({
-        id: 'selfData',
-        type: 'symbol',
-        source: 'selfData',
+        id: "selfData",
+        type: "symbol",
+        source: "selfData",
         layout: {
-          'icon-allow-overlap': true,
-          'icon-rotation-alignment': 'map',
-          'icon-rotate': ['get', 'trueTrack'],
-          'icon-image': 'selfPlane',
-          'icon-size': 0.1,
+          "icon-allow-overlap": true,
+          "icon-rotation-alignment": "map",
+          "icon-rotate": ["get", "trueTrack"],
+          "icon-image": "selfPlane",
+          "icon-size": 0.1,
         },
-      })
-    })
+      });
+    });
 
-    initMap.loadImage(require('./assets/Plane2.png'), function (error, image) {
-      if (error) throw error
-      initMap.addImage('selfDataIcon', image)
+    initMap.loadImage(require("./assets/Plane2.png"), function (error, image) {
+      if (error) throw error;
+      initMap.addImage("selfDataIcon", image);
 
-      initMap.addSource('otherPlanesData', {
-        type: 'geojson',
+      initMap.addSource("otherPlanesData", {
+        type: "geojson",
         data: {
-          type: 'FeatureCollection',
+          type: "FeatureCollection",
           features: [],
         },
-      })
+      });
       initMap.addLayer({
-        id: 'otherPlanes',
-        type: 'symbol',
-        source: 'otherPlanesData',
+        id: "otherPlanes",
+        type: "symbol",
+        source: "otherPlanesData",
         layout: {
-          'icon-image': 'selfDataIcon',
-          'icon-size': 0.075,
-          'icon-allow-overlap': true,
-          'icon-rotation-alignment': 'map',
-          'icon-rotate': ['get', 'trueTrack'],
+          "icon-image": "selfDataIcon",
+          "icon-size": 0.075,
+          "icon-allow-overlap": true,
+          "icon-rotation-alignment": "map",
+          "icon-rotate": ["get", "trueTrack"],
         },
         minzoom: 6,
-      })
+      });
 
-      initMap.on('click', 'otherPlanes', (e) =>
-        alert(e.features[0].properties.callSign),
-      )
+      initMap.on("click", "otherPlanes", (e) =>
+        alert(e.features[0].properties.callSign)
+      );
       initMap.on(
-        'mouseenter',
-        'otherPlanes',
-        () => (initMap.getCanvas().style.cursor = 'pointer'),
-      )
+        "mouseenter",
+        "otherPlanes",
+        () => (initMap.getCanvas().style.cursor = "pointer")
+      );
       initMap.on(
-        'mouseleave',
-        'otherPlanes',
-        () => (initMap.getCanvas().style.cursor = ''),
-      )
-    })
+        "mouseleave",
+        "otherPlanes",
+        () => (initMap.getCanvas().style.cursor = "")
+      );
+    });
 
-    initMap.loadImage(require('./assets/mockPlane.png'), function (error, image) {
-      if (error) throw error
-      initMap.addImage('mockPlane', image)
+    initMap.loadImage(
+      require("./assets/mockPlane.png"),
+      function (error, image) {
+        if (error) throw error;
+        initMap.addImage("mockPlane", image);
 
-      initMap.addSource('mockData', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [],
+        initMap.addSource("mockData", {
+          type: "geojson",
+          data: {
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [],
+            },
+            properties: {},
           },
-          properties: {},
-        },
+        });
+
+        initMap.addLayer({
+          id: "mockData",
+          type: "symbol",
+          source: "mockData",
+          layout: {
+            "icon-allow-overlap": true,
+            "icon-rotation-alignment": "map",
+            "icon-rotate": ["get", "trueTrack"],
+            "icon-image": "mockPlane",
+            "icon-size": 0.03,
+          },
+        });
+      }
+    );
+
+    initMap.on('load', () => {
+      initMap.addSource('national-park', {
+        type: 'geojson',
+        data: entityData,
       })
 
       initMap.addLayer({
-        id: 'mockData',
-        type: 'symbol',
-        source: 'mockData',
-        layout: {
-          'icon-allow-overlap': true,
-          'icon-rotation-alignment': 'map',
-          'icon-rotate': ['get', 'trueTrack'],
-          'icon-image': 'mockPlane',
-          'icon-size': 0.03,
+        id: 'park-boundary',
+        type: 'fill',
+        source: 'national-park',
+        paint: {
+          'fill-color': 'gray',
+          'fill-opacity': 0.4,
         },
+        filter: ['==', '$type', 'Polygon'],
+      })
+
+      initMap.addLayer({
+        id: 'park-volcanoes',
+        type: 'circle',
+        source: 'national-park',
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#B42222',
+        },
+        filter: ['==', '$type', 'Point'],
       })
     })
 
     const fpsControl = new FPSControl();
     initMap.addControl(fpsControl, "top-right");
 
-    setMap(initMap)
-  }, [])
+    setMap(initMap);
+
+    fetchForMockData();
+  }, []);
+
+  useEffect(() => {
+
+    // mapRef.current.setLayoutProperty(
+    //     'mockData',
+    //     'visibility',
+    //     isMonitoringMockData ?'visible' :'none'
+    //     )
+    }
+  , [isMonitoringMockData])
 
   const fetchForSelfData = async () => {
     if (!isFetchingSelfData) {
-      setIsFetchingSelfData(true)
+      setIsFetchingSelfData(true);
 
-      const selfDataClient = new W3CWebSocket('ws://host.docker.internal:4000/selfPosition');
+      const selfDataClient = new W3CWebSocket(
+        "ws://localhost:4000/selfPosition"
+      );
       selfDataClient.onopen = () => {
         console.log("Client Connected to SelfData!");
       };
-      selfDataClient.onclose = () => {
-        console.log("connection to SelfData closed!");
-      };
       selfDataClient.onmessage = (message) => {
         const data = JSON.parse(message.data);
-        mapRef.current.getSource('selfData').setData({
-          type: 'Feature',
+        mapRef.current.getSource("selfData").setData({
+          type: "Feature",
           geometry: {
-            type: 'Point',
+            type: "Point",
             coordinates: [data.Position.Longitude, data.Position.Latitude],
           },
           properties: {
             callSign: data.CallSign,
             trueTrack: data.TrueTrack,
           },
-        })
+        });
         if (isCenter.current) {
-          center()
+          center();
         }
-      }
+      };
+      selfDataClient.onclose= 
+        () => {
+          setTimeout(
+            fetchForSelfData
+          , 1000);
+        }
     }
-  }
+  };
+  const fetchForMockData = async () => {
+    if (!isMonitoringMockData) {
+      setIsMonitoringMockData(true);
+      const mockDataClient = new W3CWebSocket(
+        "ws://localhost:4000/mockData"
+      );
+      const wdCliend = new W3CWebSocket("ws://localhost:4000/wd");
+      mockDataClient.onmessage = (message) => {
+        const mockData = JSON.parse(message.data);
+        mapRef.current.getSource("mockData").setData({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [
+              mockData.Position.Longitude,
+              mockData.Position.Latitude,
+            ],
+          },
+          properties: {
+            callSign: mockData.CallSign,
+            trueTrack: mockData.TrueTrack,
+          },
+        });
+        console.log(`recieved mock data for ${mockData.CallSign}`);
+        //TODO: Send POST request or Socket message to WD
+        wdCliend.send(JSON.stringify(mockData));
+      };
+
+      mockDataClient.onclose =
+        () => {
+          setTimeout(
+            fetchForMockData
+          , 1000);
+        }
+      
+    }
+  };
 
   const center = () => {
-    const coordinates = mapRef.current.getSource('selfData')._data.geometry
-      .coordinates
+    const coordinates =
+      mapRef.current.getSource("selfData")._data.geometry.coordinates;
     setMapRotation(
-      mapRef.current.getSource('selfData')._data.properties.trueTrack,
-    )
-    mapRef.current.flyTo({ center: coordinates, zoom: 12, duration: 0 })
-  }
+      mapRef.current.getSource("selfData")._data.properties.trueTrack
+    );
+    mapRef.current.flyTo({ center: coordinates, zoom: 12, duration: 0 });
+  };
 
   const fetchForOtherPlanes = async () => {
-    clearInterval(refreshIntervalId)
+    clearInterval(refreshIntervalId);
 
     const intervalId = setInterval(async () => {
       const data = await (
-        await fetch(`http://host.docker.internal:5000/multi-position/${planeCount}`)
-      ).json()
+        await fetch(
+          `http://localhost:5000/multi-position/${isfetchingAllPlanes ? '' : planeCount}`
+        )
+      ).json();
       const parsedData = data.map((a) => {
         return {
-          type: 'Feature',
+          type: "Feature",
           properties: {
             callSign: a.callSign,
             trueTrack: a.trueTrack,
           },
           geometry: {
-            type: 'Point',
+            type: "Point",
             coordinates: [a.position.longitude, a.position.latitude],
           },
-        }
-      })
+        };
+      });
 
-      mapRef.current.getSource('otherPlanesData')?.setData({
-        type: 'FeatureCollection',
+      mapRef.current.getSource("otherPlanesData")?.setData({
+        type: "FeatureCollection",
         features: [...parsedData],
-      })
-    }, 100)
+      });
+    }, 100);
 
-    setRefreshIntervalId(intervalId)
-  }
+    setRefreshIntervalId(intervalId);
+  };
 
   const fetchForObstacles = async () => {
     const data = await (
-      await fetch(`http://host.docker.internal:5000/obstacles/${1000}`)
-    ).json()
+      await fetch(`http://localhost:5000/obstacles/${1000}`)
+    ).json();
     const parsedData = data.map((a) => {
       return {
-        type: 'Feature',
+        type: "Feature",
         properties: {
           callSign: a.name,
           description: a.description,
           heightMeters: a.heightMeters,
         },
         geometry: {
-          type: 'Point',
+          type: "Point",
           coordinates: [a.position.longitude, a.position.latitude],
         },
-      }
-    })
+      };
+    });
 
-    mapRef.current.getSource('obstacleData').setData({
-      type: 'FeatureCollection',
+    mapRef.current.getSource("obstacleData").setData({
+      type: "FeatureCollection",
       features: [...parsedData],
-    })
-  }
+    });
+  };
 
   const sideBarBtns = [
     {
-      key: 'selfFetch',
+      key: "selfFetch",
       icon: <AirplanemodeActiveIcon fontSize="large" alt="f" />,
       onClick: fetchForSelfData,
-      des: 'Fetch Self data',
+      des: "Fetch Self data",
       enable: !isFetchingSelfData,
     },
     {
-      key: 'multiFetch',
+      key: "multiFetch",
       icon: <ConnectingAirportsIcon fontSize="large" />,
       onClick: () => {
-        if (planeCount > 0) fetchForOtherPlanes()
+        if (planeCount > 0) fetchForOtherPlanes();
       },
-      des: 'Fetch multi data',
+      des: "Fetch multi data",
       enable: planeCount > 0,
     },
     {
-      key: 'center',
+      key: "center",
       icon: <AdjustIcon fontSize="large" />,
       onClick: () => (isCenter.current = !isCenter.current),
-      des: 'Center Plane',
+      des: "Center Plane",
       enable: !isCenter.current && isFetchingSelfData,
     },
     {
-      key: 'north',
+      key: "north",
       icon: <ExploreIcon fontSize="large" />,
       onClick: () => setMapRotation(0),
-      des: 'North Plane',
+      des: "North Plane",
       enable: !isCenter.current,
     },
     {
-      key: 'pitch',
+      key: "pitch",
       icon: <MapIcon fontSize="large" />,
-      onClick: () => setMapPitch(pitch.current != 0 ? 0 : 40),
-      des: 'Pitch Map',
+      onClick: () => setMapPitch(pitch.current !== 0 ? 0 : 40),
+      des: "Pitch Map",
       enable: true,
     },
     {
-      key: 'obstacles',
+      key: "obstacles",
       icon: <CrisisAlertIcon fontSize="large" />,
       onClick: fetchForObstacles,
-      des: 'Fetch obstacles',
+      des: "Fetch obstacles",
       enable: true,
     },
     {
-      key: 'mockDataFetch',
+      key: "mockDataFetch",
       icon: <MonitorHeartIcon fontSize="large" />,
-      onClick: fetchForMockData,
-      des: 'Fetch mockData',
-      enable: true,
-    }
-  ]
+      onClick: () => setIsMonitoringMockData(!isMonitoringMockData),
+      des: "Fetch mockData",
+      enable: !isMonitoringMockData,
+    },
+  ];
 
   const setMapRotation = (ang) => {
-    mapRef.current.rotateTo(ang, { duration: 0 })
-  }
+    mapRef.current.rotateTo(ang, { duration: 0 });
+  };
 
   const setMapPitch = (dgr) => {
-    console.log(dgr)
-    mapRef.current.setPitch(dgr)
-    pitch.current = dgr
-  }
+    console.log(dgr);
+    mapRef.current.setPitch(dgr);
+    pitch.current = dgr;
+  };
 
   return (
     <div className="map-win">
@@ -369,9 +459,9 @@ const Map = ({ setMousePosition }) => {
           <div
             key={btn.key}
             onClick={() => {
-              if (btn.enable) btn.onClick()
+              if (btn.enable) btn.onClick();
             }}
-            className={`icon-frame${!btn.enable ? ' disabled' : ''}`}
+            className={`icon-frame${!btn.enable ? " disabled" : ""}`}
           >
             {btn.icon}
           </div>
@@ -381,7 +471,7 @@ const Map = ({ setMousePosition }) => {
         <PlaneCounter planeCount={planeCount} setPlaneCount={setPlaneCount} />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Map
+export default Map;

@@ -1,12 +1,12 @@
 services: 
   maptiler:
-    image: maptiler/server_israel
+    image: maptiler
     container_name: maptiler
     ports:
       - 3650:3650
     mem_limit: 500m
   position-provider:
-    image: prodactive-dev/position-provider
+    image: position-provider
     container_name: position-provider
     ports:
         - '5000:5000'
@@ -20,11 +20,17 @@ services:
     ports:
         - '3000:3000'
     image: mapbox:latest
-    mem_limit: 1g
-  wd1:
-    container_name: watchdog
-    image: wd1
-    mem_limit: 100m
+    mem_limit: 800m
+    depends_on:
+      - maptiler
+  # watchdog:
+  #   container_name: watchdog
+  #   image: watchdog
+  #   mem_limit: 100m
+  # watchdog_new:
+  #   container_name: watchdog_new
+  #   image: watchdog_new
+  #   mem_limit: 100m
   selfdata:
     container_name: selfdata
     ports:
