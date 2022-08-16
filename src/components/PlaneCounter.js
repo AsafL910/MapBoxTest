@@ -1,12 +1,13 @@
 import Slider from '@mui/material/Slider'
 import './PlaneCounter.css'
-const PlaneCounter = ({ planeCount, setPlaneCount }) => {
+const PlaneCounter = ({ planeCount, setPlaneCount, isfetchingAllPlanes }) => {
   const calculateValue = (value) => {
     return 2 ** value
   }
 
   return (
     <Slider
+      disabled={isfetchingAllPlanes}
       className="slider"
       orientation="vertical"
       aria-label="Planes count"

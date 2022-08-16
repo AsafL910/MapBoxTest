@@ -3,6 +3,7 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { useState, useEffect, useRef } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./MapBox.css";
+import LoopIcon from '@mui/icons-material/Loop';
 import AdjustIcon from "@mui/icons-material/Adjust";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import ConnectingAirportsIcon from "@mui/icons-material/ConnectingAirports";
@@ -18,7 +19,7 @@ import entityData from './assets/entities.json'
 
 const Map = ({ setMousePosition }) => {
   const [isFetchingSelfData, setIsFetchingSelfData] = useState(false);
-  const [isMonitoringMockData, setIsMonitoringMockData] = useState(false);
+  const [isMonitoringMockData, setIsMonitoringMockData] = useState(true);
   const [map, setMap] = useState();
   const [refreshIntervalId, setRefreshIntervalId] = useState();
   const [isfetchingAllPlanes, setIsFetchingAllPlanes] = useState(false)
@@ -398,11 +399,9 @@ const Map = ({ setMousePosition }) => {
     {
       key: "multiFetch",
       icon: <ConnectingAirportsIcon fontSize="large" />,
-      onClick: () => {
-        if (planeCount > 0) fetchForOtherPlanes();
-      },
+      onClick: fetchForOtherPlanes,
       des: "Fetch multi data",
-      enable: planeCount > 0,
+      enable: planeCount > 0 || isfetchingAllPlanes,
     },
     {
       key: "center",
@@ -439,6 +438,13 @@ const Map = ({ setMousePosition }) => {
       des: "Fetch mockData",
       enable: !isMonitoringMockData,
     },
+    {
+      key: "fetchAllPlanes",
+      icon: <LoopIcon fontSize="large" />,
+      onClick: () => setIsFetchingAllPlanes(!isfetchingAllPlanes),
+      des: "Fetch mockData",
+      enable: !isfetchingAllPlanes,
+    },
   ];
 
   const setMapRotation = (ang) => {
@@ -446,7 +452,6 @@ const Map = ({ setMousePosition }) => {
   };
 
   const setMapPitch = (dgr) => {
-    console.log(dgr);
     mapRef.current.setPitch(dgr);
     pitch.current = dgr;
   };
@@ -459,7 +464,7 @@ const Map = ({ setMousePosition }) => {
           <div
             key={btn.key}
             onClick={() => {
-              if (btn.enable) btn.onClick();
+              btn.onClick();
             }}
             className={`icon-frame${!btn.enable ? " disabled" : ""}`}
           >
@@ -468,7 +473,7 @@ const Map = ({ setMousePosition }) => {
         ))}
       </div>
       <div className="right-side-bar">
-        <PlaneCounter planeCount={planeCount} setPlaneCount={setPlaneCount} />
+        <PlaneCounter planeCount={planeCount} setPlaneCount={setPlaneCount} isfetchingAllPlanes={isfetchingAllPlanes}/>
       </div>
     </div>
   );
