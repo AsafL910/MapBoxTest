@@ -38,7 +38,7 @@ const Map = ({ setMousePosition }) => {
       pitch: 0,
     });
 
-    var draw = new MapboxDraw();
+    var draw = new MapboxDraw({ boxSelect: false });
 
     // Map#addControl takes an optional second argument to set the position of the control.
     // If no position is specified the control defaults to `top-right`. See the docs
