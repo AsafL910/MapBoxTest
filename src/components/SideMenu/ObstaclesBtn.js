@@ -1,6 +1,8 @@
 import { Source, Layer, useMap } from "react-map-gl";
 import CrisisAlertIcon from "@mui/icons-material/CrisisAlert";
 import { useEffect, useState } from "react";
+import SideMenuBtn from "./SideMenuBtn";
+
 const ObstaclesBtn = () => {
   const { current: currMap } = useMap();
   const [obstacleData, setObstaclesData] = useState({
@@ -21,7 +23,7 @@ const ObstaclesBtn = () => {
 
   useEffect(() => {
     currMap.loadImage(
-      require("../assets/red-obstacle.png"),
+      require("../../assets/red-obstacle.png"),
       function (error, image) {
         if (error) throw error;
         currMap.addImage("mapMarker", image);
@@ -55,9 +57,7 @@ const ObstaclesBtn = () => {
   };
   return (
     <>
-      <div onClick={fetchForObstacles} className={`icon-frame`}>
-        <CrisisAlertIcon fontSize="large" alt="f" />
-      </div>
+    <SideMenuBtn onClick={fetchForObstacles} Icon={CrisisAlertIcon}/>
       <Source id="obstacleData" type="geojson" data={obstacleData}>
         <Layer {...obstaclesLayer} />
       </Source>

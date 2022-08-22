@@ -1,6 +1,7 @@
 import AdjustIcon from "@mui/icons-material/Adjust";
 import { useEffect } from "react";
 import { useMap } from "react-map-gl";
+import SideMenuBtn from "./SideMenuBtn";
 
 const CenterMapBtn = ({ isCenter, setIsCenter }) => {
   const { current: currMap } = useMap();
@@ -19,14 +20,13 @@ const CenterMapBtn = ({ isCenter, setIsCenter }) => {
     });
   }, []);
   return (
-    <div
+    <SideMenuBtn
       onClick={() => {
         setIsCenter(!isCenter);
       }}
-      className={`icon-frame${isCenter ? " disabled" : ""}`}
-    >
-      <AdjustIcon fontSize="large" alt="f" />
-    </div>
+      className={isCenter && " disabled"}
+      Icon={AdjustIcon}
+    />
   );
 };
 

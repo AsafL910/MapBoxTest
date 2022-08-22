@@ -2,6 +2,7 @@ import { useMap, Source, Layer } from "react-map-gl";
 import { useEffect, useState } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
+import SideMenuBtn from "./SideMenuBtn";
 
 const FetchSelfData = ({ center, isCenter }) => {
   const { current: currMap } = useMap();
@@ -36,7 +37,7 @@ const FetchSelfData = ({ center, isCenter }) => {
   // };
 
   useEffect(() => {
-    currMap.loadImage(require("../assets/Plane2.png"), function (error, image) {
+    currMap.loadImage(require("../../assets/Plane2.png"), function (error, image) {
       if (error) throw error;
       currMap.addImage("selfPlane", image);
     });
@@ -83,12 +84,11 @@ const FetchSelfData = ({ center, isCenter }) => {
 
   return (
     <>
-      <div
+      <SideMenuBtn
         onClick={() => fetchForSelfData(isCenter)}
-        className={`icon-frame${isFetchingSelfData ? " disabled" : ""}`}
-      >
-        <AirplanemodeActiveIcon fontSize="large" alt="f" />
-      </div>
+        Icon={AirplanemodeActiveIcon}
+        className={isFetchingSelfData && "disabled"}
+      />
       <Source id="selfData" type="geojson" data={selfDataSource}>
         <Layer {...selfDataLayer} />
       </Source>

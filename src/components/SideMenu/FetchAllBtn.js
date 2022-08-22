@@ -1,13 +1,13 @@
 import LoopIcon from "@mui/icons-material/Loop";
+import SideMenuBtn from "./SideMenuBtn";
 
 const FetchAllBtn = ({ isFetchingAllPlanes, onClick }) => {
   return (
-    <div
+    <SideMenuBtn
       onClick={onClick}
-      className={`icon-frame${isFetchingAllPlanes ? " disabled" : ""}`}
-    >
-      <LoopIcon fontSize="large" alt="f" />
-    </div>
+      className={isFetchingAllPlanes && "disabled"}
+      Icon={LoopIcon}
+    />
   );
 };
 

@@ -11,17 +11,17 @@ import "./MapBox.css";
 import PlaneCounter from "./components/PlaneCounter";
 
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
-import FetchSelfData from "./components/FetchSelfData";
-import FetchOtherPlanes from "./components/FetchOtherPlanes";
-import ObstaclesBtn from "./components/ObstaclesBtn";
-import MonitorBtn from "./components/MonitorBtn";
-import FpsCounter from "./components/FpsCounter";
-import CenterMapBtn from "./components/CenterMapBtn";
+import FetchSelfData from "./components/SideMenu/FetchSelfData";
+import FetchOtherPlanes from "./components/SideMenu/FetchOtherPlanes";
+import ObstaclesBtn from "./components/SideMenu/ObstaclesBtn";
+import MonitorBtn from "./components/SideMenu/MonitorBtn";
+import FpsCounter from "./components/Controls/FpsCounter";
+import CenterMapBtn from "./components/SideMenu/CenterMapBtn";
 import MousePosition from "./components/MousePosition";
-import DrawBar from "./components/DrawBar";
+import DrawBar from "./components/Controls/DrawBar";
 import LocalEntities from "./components/LocalEntities";
-import FetchAllBtn from "./components/FetchAllBtn";
-import PitchBtn from "./components/PitchBtn";
+import FetchAllBtn from "./components/SideMenu/FetchAllBtn";
+import PitchBtn from "./components/SideMenu/PitchBtn";
 
 const MapBox = () => {
   const [isfetchingAllPlanes, setIsFetchingAllPlanes] = useState(false);

@@ -1,6 +1,7 @@
 import { Layer, Source, useMap } from "react-map-gl";
 import { useEffect, useState } from "react";
 import ConnectingAirportsIcon from "@mui/icons-material/ConnectingAirports";
+import SideMenuBtn from "./SideMenuBtn";
 
 const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
   const [refreshIntervalId, setRefreshIntervalId] = useState();
@@ -24,7 +25,7 @@ const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
     minzoom: 6,
   };
   useEffect(() => {
-    currMap.loadImage(require("../assets/Plane2.png"), function (error, image) {
+    currMap.loadImage(require("../../assets/Plane2.png"), function (error, image) {
       if (error) throw error;
       currMap.addImage("selfDataIcon", image);
 
@@ -80,16 +81,13 @@ const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
 
   return (
     <>
-      <div
+      <SideMenuBtn
         onClick={() => {
           fetchForOtherPlanes(isFetchingAllPlanes, planeCount);
         }}
-        className={`icon-frame${
-          planeCount > 0 || isFetchingAllPlanes ? "" : " disabled"
-        }`}
-      >
-        <ConnectingAirportsIcon fontSize="large" alt="f" />
-      </div>
+        Icon={ConnectingAirportsIcon}
+        className={planeCount <= 0 && !isFetchingAllPlanes && " disabled"}
+      />
       <Source id="otherPlanesData" type="geojson" data={otherPlanesData}>
         <Layer {...otherPlanesLayer} />
       </Source>

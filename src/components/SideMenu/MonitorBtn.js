@@ -2,6 +2,7 @@ import { useMap, Source, Layer } from "react-map-gl";
 import { useState, useEffect } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
+import SideMenuBtn from "./SideMenuBtn";
 
 const MonitorBtn = () => {
   const { current: currMap } = useMap();
@@ -30,16 +31,16 @@ const MonitorBtn = () => {
 
   useEffect(() => {
     currMap.loadImage(
-      require("../assets/mockPlane.png"),
+      require("../../assets/mockPlane.png"),
       function (error, image) {
         if (error) throw error;
         currMap.addImage("mockPlane", image);
       }
     );
-    fetchForMockData();
+    fetchForMockData(isMonitoringMockData);
   }, []);
 
-  const fetchForMockData = async () => {
+  const fetchForMockData = async (isMonitoringMockData) => {
     if (!isMonitoringMockData) {
       const mockDataClient = new W3CWebSocket("ws://localhost:4000/mockData");
       const wdCliend = new W3CWebSocket("ws://localhost:4000/wd");
@@ -65,7 +66,7 @@ const MonitorBtn = () => {
       };
 
       mockDataClient.onclose = () => {
-        setTimeout(fetchForMockData, 1000);
+        setTimeout(()=> fetchForMockData(isMonitoringMockData), 1000);
       };
     }
   };
@@ -74,12 +75,11 @@ const MonitorBtn = () => {
       <Source id="mockData" type="geojson" data={mockDataSource}>
         <Layer {...mockDataLayer} />
       </Source>
-      <div
+      <SideMenuBtn
         onClick={() => setIsMonitoringMockData(!isMonitoringMockData)}
-        className={`icon-frame${isMonitoringMockData ? " disabled" : ""}`}
-      >
-        <MonitorHeartIcon fontSize="large" alt="f" />
-      </div>
+        Icon={MonitorHeartIcon}
+        className={isMonitoringMockData && " disabled"}
+      />
     </>
   );
 };
