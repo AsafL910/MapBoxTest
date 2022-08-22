@@ -17,6 +17,7 @@ body {
   width: 100px;
   height: 80%;
   flex-direction: column-reverse;
+  margin-bottom: 5vh;
 }
 
 .right-side-bar {
