@@ -30,12 +30,6 @@ const FetchSelfData = ({ center, isCenter }) => {
     },
   };
 
-  // const center = (dgr, coor) => {
-
-  //   currMap.rotateTo(dgr, { duration: 0 });
-  //   currMap.flyTo({ center: coor, zoom: 5, duration: 0 });
-  // };
-
   useEffect(() => {
     currMap.loadImage(require("../../assets/Plane2.png"), function (error, image) {
       if (error) throw error;

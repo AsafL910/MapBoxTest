@@ -42,8 +42,7 @@ const MonitorBtn = () => {
 
   const fetchForMockData = async (isMonitoringMockData) => {
     if (!isMonitoringMockData) {
-      const mockDataClient = new W3CWebSocket("ws://localhost:4000/mockData");
-      const wdCliend = new W3CWebSocket("ws://localhost:4000/wd");
+      const mockDataClient = new W3CWebSocket("ws://localhost:7000/mockData");
       mockDataClient.onmessage = (message) => {
         const mockData = JSON.parse(message.data);
         setMockDataSource({
@@ -62,7 +61,7 @@ const MonitorBtn = () => {
         });
         console.log(`recieved mock data for ${mockData.CallSign}`);
         //TODO: Send POST request or Socket message to WD
-        wdCliend.send(JSON.stringify(mockData));
+        mockDataClient.send(JSON.stringify(mockData));
       };
 
       mockDataClient.onclose = () => {
@@ -86,8 +85,3 @@ const MonitorBtn = () => {
 
 export default MonitorBtn;
 
-// mapRef.current.setLayoutProperty(
-//     'mockData',
-//     'visibility',
-//     isMonitoringMockData ?'visible' :'none'
-//     )

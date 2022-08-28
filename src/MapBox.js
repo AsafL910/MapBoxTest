@@ -35,14 +35,6 @@ const MapBox = () => {
   const [planeCount, setPlaneCount] = useState(0);
   const mapRef = useRef();
 
-  // {
-  //   key: "center",
-  //   icon: <AdjustIcon fontSize="large" />,
-  //   onClick: () => (isCenter.current = !isCenter.current),
-  //   des: "Center Plane",
-  //   enable: !isCenter.current //&& isFetchingSelfData,
-  // },
-
   return (
     <div className="map-win">
       <Map
