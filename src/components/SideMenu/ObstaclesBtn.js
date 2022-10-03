@@ -5,6 +5,7 @@ import SideMenuBtn from "./SideMenuBtn";
 
 const ObstaclesBtn = () => {
   const { current: currMap } = useMap();
+  const [showObstacles, setShowObstacles] = useState(true);
   const [obstacleData, setObstaclesData] = useState({
     type: "FeatureCollection",
     features: [],
@@ -32,8 +33,11 @@ const ObstaclesBtn = () => {
   }, []);
 
   const fetchForObstacles = async () => {
-    const data = await (
-      await fetch(`http://localhost:5000/obstacles/${1000}`)
+
+    if (showObstacles)
+    {
+      const data = await (
+        await fetch(`http://localhost:5000/obstacles/${1000}`)
     ).json();
     const parsedData = data.map((a) => {
       return {
@@ -49,15 +53,24 @@ const ObstaclesBtn = () => {
         },
       };
     });
-
     setObstaclesData({
       type: "FeatureCollection",
       features: [...parsedData],
     });
+    }
+    else
+    {
+      setObstaclesData({
+        type: "FeatureCollection",
+        features: [],
+      });
+    }
+    setShowObstacles(!showObstacles);
+    
   };
   return (
     <>
-    <SideMenuBtn onClick={fetchForObstacles} Icon={CrisisAlertIcon}/>
+    <SideMenuBtn onClick={fetchForObstacles} Icon={CrisisAlertIcon} className={showObstacles && " disabled"}/>
       <Source id="obstacleData" type="geojson" data={obstacleData}>
         <Layer {...obstaclesLayer} />
       </Source>

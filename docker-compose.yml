@@ -26,22 +26,22 @@ services:
         - 'ASPNETCORE_HTTP_PORT=http://+:9001'
         - 'ASPNETCORE_URLS=http://+:9000'
     mem_limit: 300m
+    depends_on:
+      - mapbox
   mapbox:
     container_name: frontend
     ports:
         - '3000:3000'
     image: mapbox:latest
-    mem_limit: 800m
+    mem_limit: 900m
     depends_on:
       - maptiler
-  # watchdog:
-  #   container_name: watchdog
-  #   image: watchdog
-  #   mem_limit: 100m
-  # watchdog_new:
-  #   container_name: watchdog_new
-  #   image: watchdog_new
-  #   mem_limit: 100m
+  watchdog:
+    container_name: watchdog
+    image: watchdog
+    mem_limit: 500m
+    depends_on:
+      - mock-position-provider
   selfdata:
     container_name: selfdata
     ports:

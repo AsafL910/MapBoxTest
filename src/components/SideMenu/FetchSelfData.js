@@ -1,5 +1,5 @@
 import { useMap, Source, Layer } from "react-map-gl";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import SideMenuBtn from "./SideMenuBtn";
@@ -7,14 +7,17 @@ import SideMenuBtn from "./SideMenuBtn";
 const FetchSelfData = ({ center, isCenter }) => {
   const { current: currMap } = useMap();
   const [isFetchingSelfData, setIsFetchingSelfData] = useState(false);
+  const isCenterRef = useRef();
   const [selfDataSource, setSelfDataSource] = useState({
     type: "Feature",
     geometry: {
       type: "Point",
-      coordinates: [32, 35],
+      coordinates: [],
     },
     properties: {},
   });
+
+  isCenterRef.current = isCenter;
 
   const selfDataLayer = {
     id: "selfData",
@@ -37,7 +40,7 @@ const FetchSelfData = ({ center, isCenter }) => {
     });
   }, []);
 
-  const fetchForSelfData = async (isCenter) => {
+  const fetchForSelfData = () => {
     if (!isFetchingSelfData) {
       setIsFetchingSelfData(true);
 
@@ -60,7 +63,7 @@ const FetchSelfData = ({ center, isCenter }) => {
             trueTrack: data.TrueTrack,
           },
         });
-        if (isCenter) {
+        if (isCenterRef.current) {
           center(
             data.Position.Latitude,
             data.Position.Longitude,
@@ -79,7 +82,7 @@ const FetchSelfData = ({ center, isCenter }) => {
   return (
     <>
       <SideMenuBtn
-        onClick={() => fetchForSelfData(isCenter)}
+        onClick={fetchForSelfData}
         Icon={AirplanemodeActiveIcon}
         className={isFetchingSelfData && "disabled"}
       />
