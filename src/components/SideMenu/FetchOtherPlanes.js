@@ -1,15 +1,23 @@
 import { Layer, Source, useMap } from "react-map-gl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ConnectingAirportsIcon from "@mui/icons-material/ConnectingAirports";
 import SideMenuBtn from "./SideMenuBtn";
 
+
 const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
-  const [refreshIntervalId, setRefreshIntervalId] = useState();
+  const isFetchingAllPlanesRef = useRef();
+  isFetchingAllPlanesRef.current = isFetchingAllPlanes;
   const { current: currMap } = useMap();
+  const planeCountRef = useRef();
+  planeCountRef.current = planeCount;
   const [otherPlanesData, setOtherPlanesData] = useState({
     type: "FeatureCollection",
     features: [],
   });
+  const otherPlanesDataRef = useRef();
+  otherPlanesDataRef.current = otherPlanesData;
+
+  const [isFetching, setIsFetching] = useState(false)
 
   const otherPlanesLayer = {
     id: "otherPlanes",
@@ -45,14 +53,13 @@ const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
     });
   }, []);
 
-  const fetchForOtherPlanes = async (isFetchingAllPlanes, planeCount) => {
-    clearInterval(refreshIntervalId);
+  const fetchForOtherPlanes = async () => {
 
-    const intervalId = setInterval(async () => {
+      while(true) {
       const data = await (
         await fetch(
           `http://localhost:5000/multi-position/${
-            isFetchingAllPlanes ? "" : planeCount
+            isFetchingAllPlanesRef.current  ? "" : planeCountRef.current
           }`
         )
       ).json();
@@ -74,21 +81,20 @@ const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
         type: "FeatureCollection",
         features: [...parsedData],
       });
-    }, 100);
+    }
 
-    setRefreshIntervalId(intervalId);
   };
 
   return (
     <>
       <SideMenuBtn
         onClick={() => {
-          fetchForOtherPlanes(isFetchingAllPlanes, planeCount);
+          fetchForOtherPlanes();
         }}
         Icon={ConnectingAirportsIcon}
         className={planeCount <= 0 && !isFetchingAllPlanes && " disabled"}
       />
-      <Source id="otherPlanesData" type="geojson" data={otherPlanesData}>
+      <Source id="otherPlanesData" type="geojson" data={otherPlanesDataRef.current}>
         <Layer {...otherPlanesLayer} />
       </Source>
     </>
