@@ -45,7 +45,7 @@ const MonitorBtn = () => {
   },[])
 
   const fetchForMockData = () => {
-      const mockDataClient = new W3CWebSocket("ws://localhost:7000/mockData");
+      const mockDataClient = new W3CWebSocket("ws://localhost:7001/mock");
       mockDataClient.onmessage = (message) => {
         
         const mockData = JSON.parse(message.data);

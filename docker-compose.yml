@@ -15,13 +15,14 @@ services:
         - 'ASPNETCORE_HTTP_PORT=http://+:5001'
         - 'ASPNETCORE_URLS=http://+:5000'
     mem_limit: 300m
-  mock-position-provider:
-    image: mock-position-provider
-    container_name: mock-position-provider
+  mock-self-data:
+    image: mock-self-data
+    container_name: mock-self-data
     ports:
         - '9000:9000'
         - '9001:9001'
         - '7000:7000'
+        - '7001:7001'
     environment:
         - 'ASPNETCORE_HTTP_PORT=http://+:9001'
         - 'ASPNETCORE_URLS=http://+:9000'
@@ -36,15 +37,3 @@ services:
     mem_limit: 900m
     depends_on:
       - maptiler
-  watchdog:
-    container_name: watchdog
-    image: watchdog
-    mem_limit: 500m
-    depends_on:
-      - mock-position-provider
-  selfdata:
-    container_name: selfdata
-    ports:
-        - '4000:4000'
-    image: selfdata
-    mem_limit: 100m

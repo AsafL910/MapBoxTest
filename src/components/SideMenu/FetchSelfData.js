@@ -45,7 +45,7 @@ const FetchSelfData = ({ center, isCenter }) => {
       setIsFetchingSelfData(true);
 
       const selfDataClient = new W3CWebSocket(
-        "ws://localhost:4000/selfPosition"
+        "ws://localhost:7000/real"
       );
       selfDataClient.onopen = () => {
         console.log("Client Connected to SelfData!");
