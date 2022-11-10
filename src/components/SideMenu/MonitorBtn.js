@@ -4,10 +4,12 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
 import SideMenuBtn from "./SideMenuBtn";
 
+
 const MonitorBtn = () => {
   const { current: currMap } = useMap();
   const [isMonitoringMockData, setIsMonitoringMockData] = useState(false);
   const isMonitoringRef = useRef();
+  const wdSocket = new W3CWebSocket("ws://localhost:8000/wd");
 
   isMonitoringRef.current = isMonitoringMockData;
 
@@ -65,12 +67,11 @@ const MonitorBtn = () => {
           },
         });
       };
-        console.log(`recieved mock data for ${mockData.CallSign}`);
+        console.log(`recieved mock data: ${mockData.CallSign}`);
         //TODO: Send POST request or Socket message to WD
-        mockDataClient.send(JSON.stringify(mockData));
-      
-
-      mockDataClient.onclose = () => {
+        //mockDataClient.send(JSON.stringify(mockData));
+        wdSocket?.send(JSON.stringify(mockData));
+        mockDataClient.onclose = () => {
         setTimeout(fetchForMockData, 1000);
       };
     }
