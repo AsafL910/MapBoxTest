@@ -5,7 +5,7 @@ import Map, {
   FullscreenControl,
 } from "react-map-gl";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./MapBox.css";
 import PlaneCounter from "./components/PlaneCounter";
@@ -14,14 +14,15 @@ import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css";
 import FetchSelfData from "./components/SideMenu/FetchSelfData";
 import FetchOtherPlanes from "./components/SideMenu/FetchOtherPlanes";
 import ObstaclesBtn from "./components/SideMenu/ObstaclesBtn";
-import MonitorBtn from "./components/SideMenu/MonitorBtn";
+import MonitorBtn from "./components/SideMenu/WatchDogLayer";
 import FpsCounter from "./components/Controls/FpsCounter";
 import CenterMapBtn from "./components/SideMenu/CenterMapBtn";
 import MousePosition from "./components/MousePosition";
 import DrawBar from "./components/Controls/DrawBar";
 import LocalEntities from "./components/LocalEntities";
-import FetchAllBtn from "./components/SideMenu/FetchAllBtn";
+import PauseBtn from "./components/SideMenu/PauseBtn";
 import PitchBtn from "./components/SideMenu/PitchBtn";
+import RasterSwitch from "./components/SideMenu/RasterSwitch";
 
 const MapBox = () => {
   const [isfetchingAllPlanes, setIsFetchingAllPlanes] = useState(false);
@@ -33,7 +34,13 @@ const MapBox = () => {
   });
   const [isCentered, setIsCentered] = useState(false);
   const [planeCount, setPlaneCount] = useState(0);
+  const [isRaster, setIsRaster] = useState(true);
+  const [mapStyle, setMapStyle] = useState(null);
   const mapRef = useRef();
+
+  useEffect(() => setMapStyle(isRaster
+    ? Map.defaultProps.mapStyle
+    : "http://localhost:3650/api/maps/israel_2/style.json"), [isRaster]);
 
   return (
     <div className="map-win">
@@ -43,10 +50,14 @@ const MapBox = () => {
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
         style={{ position: "absolute", height: "100%", width: "100vw" }}
-        mapStyle="http://localhost:3650/api/maps/israel_1/style.json"
+        mapStyle={mapStyle && mapStyle}
       >
         <div className="left-side-bar">
-          <LocalEntities />
+          {/* <LocalEntities /> */}
+          <RasterSwitch
+            checked={isRaster}
+            onChange={() => setIsRaster(!isRaster)}
+          />
           <FetchSelfData
             isCenter={isCentered}
             center={(lat, lon, zoom, pitch, rot) => {
@@ -75,11 +86,7 @@ const MapBox = () => {
             isCenter={isCentered}
             setIsCenter={(value) => setIsCentered(value)}
           />
-          <FetchAllBtn
-            isFetchingAllPlanes={isfetchingAllPlanes}
-            onClick={() => {
-              setIsFetchingAllPlanes(!isfetchingAllPlanes);
-            }}
+          <PauseBtn
           />
         </div>
         <div className="right-side-bar">
@@ -91,7 +98,7 @@ const MapBox = () => {
         </div>
         <FpsCounter />
         <MousePosition />
-        <DrawBar />
+        {/* <DrawBar /> */}
         <ScaleControl />
         <NavigationControl position="top-left" />
         <FullscreenControl />

@@ -2,6 +2,11 @@ import { Layer, Source, useMap } from "react-map-gl";
 import { useEffect, useRef, useState } from "react";
 import ConnectingAirportsIcon from "@mui/icons-material/ConnectingAirports";
 import SideMenuBtn from "./SideMenuBtn";
+import { w3cwebsocket as W3CWebSocket } from "websocket";
+import { Snackbar } from "@mui/material";
+
+
+
 
 
 const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
@@ -17,7 +22,9 @@ const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
   const otherPlanesDataRef = useRef();
   otherPlanesDataRef.current = otherPlanesData;
 
-  const [isFetching, setIsFetching] = useState(false)
+  const [isPlaneClicked, setIsPlaneClicked] = useState(false);
+  const [lastPlaneClicked, setLastPlaneClicked] = useState(null);
+  const websocketRef = useRef(null)
 
   const otherPlanesLayer = {
     id: "otherPlanes",
@@ -38,7 +45,10 @@ const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
       currMap.addImage("selfDataIcon", image);
 
       currMap.on("click", "otherPlanes", (e) =>
-        alert(e.features[0].properties.callSign)
+      {
+        setLastPlaneClicked(e.features[0].properties.callSign);
+        setIsPlaneClicked(true);
+      }
       );
       currMap.on(
         "mouseenter",
@@ -53,43 +63,61 @@ const FetchOtherPlanes = ({ planeCount, isFetchingAllPlanes }) => {
     });
   }, []);
 
-  const fetchForOtherPlanes = async () => {
-
-      while(true) {
-      const data = await (
-        await fetch(
-          `http://localhost:5000/multi-position/${
-            isFetchingAllPlanesRef.current  ? "" : planeCountRef.current
-          }`
-        )
-      ).json();
-      const parsedData = data.map((plane) => {
-        return {
-          type: "Feature",
-          properties: {
-            callSign: plane.callSign,
-            trueTrack: plane.trueTrack,
-          },
-          geometry: {
-            type: "Point",
-            coordinates: [plane.position.longitude, plane.position.latitude],
-          },
-        };
-      });
-
-      setOtherPlanesData({
-        type: "FeatureCollection",
-        features: [...parsedData],
-      });
+  useEffect(()=>{
+    const initConnection = () => {
+      const planesDataClient = new W3CWebSocket(
+        "ws://localhost:2000/other-planes"
+      );
+      planesDataClient.onopen = () => {
+        console.log("Client Connected to position provider!");
+      };
+      planesDataClient.onmessage = (message) => {
+        const data = JSON.parse(message.data);
+        console.log("recieved update")
+        const parsedData = data.map((plane) => {
+          return {
+            type: "Feature",
+            properties: {
+              callSign: plane.CallSign,
+              trueTrack: plane.TrueTrack,
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [plane.Position.Longitude, plane.Position.Latitude],
+            },
+          };
+        });
+  
+        setOtherPlanesData({
+          type: "FeatureCollection",
+          features: [...parsedData],
+        });
+    }
+    planesDataClient.onerror = (error) => {
+      console.log(error)
     }
 
-  };
+    planesDataClient.onclose = (message) => {
+      console.log("Connection ended")
+      initConnection()
+    }
+
+    websocketRef.current = planesDataClient;
+    }
+
+    initConnection()
+
+    return () => {
+      websocketRef.current.close();
+    }
+  },[])
 
   return (
     <>
+    <Snackbar open={isPlaneClicked} onClose={()=>{setIsPlaneClicked(false);}} message={lastPlaneClicked}/>
       <SideMenuBtn
         onClick={() => {
-          fetchForOtherPlanes();
+          websocketRef.current?.send(JSON.stringify(planeCountRef.current))
         }}
         Icon={ConnectingAirportsIcon}
         className={planeCount <= 0 && !isFetchingAllPlanes && " disabled"}

@@ -4,6 +4,10 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import SideMenuBtn from "./SideMenuBtn";
 
+const selfDataClient = new W3CWebSocket(
+  "ws://localhost:7000/real"
+);
+
 const FetchSelfData = ({ center, isCenter }) => {
   const { current: currMap } = useMap();
   const [isFetchingSelfData, setIsFetchingSelfData] = useState(false);
@@ -43,10 +47,8 @@ const FetchSelfData = ({ center, isCenter }) => {
   const fetchForSelfData = () => {
     if (!isFetchingSelfData) {
       setIsFetchingSelfData(true);
+      console.log("trying to connect")
 
-      const selfDataClient = new W3CWebSocket(
-        "ws://localhost:7000/real"
-      );
       selfDataClient.onopen = () => {
         console.log("Client Connected to SelfData!");
       };

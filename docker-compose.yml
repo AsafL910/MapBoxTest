@@ -1,16 +1,17 @@
 services: 
   maptiler:
-    image: maptiler
+    image: maptiler_raster/vector
     container_name: maptiler
     ports:
       - 3650:3650
     mem_limit: 500m
   position-provider:
-    image: position-provider
+    image: position-provider-ws
     container_name: position-provider
     ports:
         - '5000:5000'
         - '5001:5001'
+        - '2000:2000'
     environment:
         - 'ASPNETCORE_HTTP_PORT=http://+:5001'
         - 'ASPNETCORE_URLS=http://+:5000'

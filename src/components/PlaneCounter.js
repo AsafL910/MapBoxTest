@@ -15,7 +15,7 @@ const PlaneCounter = ({ planeCount, setPlaneCount, isfetchingAllPlanes }) => {
       valueLabelDisplay="auto"
       step={1}
       scale={calculateValue}
-      max={12}
+      max={15}
     />
   )
 }
