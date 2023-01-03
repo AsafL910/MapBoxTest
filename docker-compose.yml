@@ -6,12 +6,12 @@ services:
       - 3650:3650
     mem_limit: 500m
   position-provider:
-    image: position-provider-ws
+    image: position-provider
     container_name: position-provider
     ports:
         - '5000:5000'
         - '5001:5001'
-        - '2000:2000'
+        # - '2000:2000'
     environment:
         - 'ASPNETCORE_HTTP_PORT=http://+:5001'
         - 'ASPNETCORE_URLS=http://+:5000'
@@ -28,13 +28,13 @@ services:
         - 'ASPNETCORE_HTTP_PORT=http://+:9001'
         - 'ASPNETCORE_URLS=http://+:9000'
     mem_limit: 300m
-    depends_on:
-      - mapbox
-  mapbox:
-    container_name: frontend
-    ports:
-        - '3000:3000'
-    image: frontend:latest
-    mem_limit: 900m
-    depends_on:
-      - maptiler
+  #   depends_on:
+  #     - mapbox
+  # mapbox:
+  #   container_name: frontend
+  #   ports:
+  #       - '3000:3000'
+  #   image: frontend:latest
+  #   mem_limit: 900m
+  #   depends_on:
+  #     - maptiler
