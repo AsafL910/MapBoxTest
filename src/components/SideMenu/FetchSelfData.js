@@ -4,9 +4,6 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import SideMenuBtn from "./SideMenuBtn";
 
-const selfDataClient = new W3CWebSocket(
-  "ws://localhost:7000/real"
-);
 
 const FetchSelfData = ({ center, isCenter }) => {
   const { current: currMap } = useMap();
@@ -42,16 +39,16 @@ const FetchSelfData = ({ center, isCenter }) => {
       if (error) throw error;
       currMap.addImage("selfPlane", image);
     });
-  }, []);
+  }, [currMap]);
 
+  
   const fetchForSelfData = () => {
+    const selfDataClient = new W3CWebSocket(
+      "ws://localhost:7000/real"
+    );
     if (!isFetchingSelfData) {
       setIsFetchingSelfData(true);
-      console.log("trying to connect")
 
-      selfDataClient.onopen = () => {
-        console.log("Client Connected to SelfData!");
-      };
       selfDataClient.onmessage = (message) => {
         const data = JSON.parse(message.data);
         setSelfDataSource({
@@ -81,6 +78,9 @@ const FetchSelfData = ({ center, isCenter }) => {
     }
   };
 
+  useEffect(()=>{
+    fetchForSelfData();
+  },[])
   return (
     <>
       <SideMenuBtn
