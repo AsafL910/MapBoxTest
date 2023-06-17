@@ -15,7 +15,7 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         script {
-          dockerImage = docker.build('frontend:${env.BUILD_NUMBER}', '-f Dockerfile .')
+          dockerImage = docker.build('frontend:latest', '-f dockerfile .')
         }
       }
     }
