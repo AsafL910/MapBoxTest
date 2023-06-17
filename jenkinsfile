@@ -1,36 +1,36 @@
 pipeline {
-    agent { 
-        node {
-            label 'docker-agent-alpine'
-            }
+  agent {
+    docker {
+      image 'docker:20.10.7'
+      args '-v /var/run/docker.sock:/var/run/docker.sock'
+    }
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
       }
-    triggers {
-        pollSCM 'H/5 * * * *'
     }
-    stages {
-        stage('Build') {
-            steps {
-                echo "Building.."
-                sh '''
-                echo "doing build stuff.."
-                '''
-            }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          dockerImage = docker.build('frontend:${env.BUILD_NUMBER}', '-f Dockerfile .')
         }
-        stage('Test') {
-            steps {
-                echo "Testing.."
-                sh '''
-                echo "doing test stuff.."
-                '''
-            }
-        }
-        stage('Deliver') {
-            steps {
-                echo 'Deliver....'
-                sh '''
-                echo "doing delivery stuff.."
-                '''
-            }
-        }
+      }
     }
+
+    stage('Stash Docker Image') {
+      steps {
+        stash name: 'docker-image', includes: 'frontend*.tar'
+      }
+    }
+  }
+
+  post {
+    success {
+      unstash 'docker-image'
+    }
+  }
 }
