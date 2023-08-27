@@ -34,13 +34,16 @@ const MapBox = () => {
   });
   const [isCentered, setIsCentered] = useState(false);
   const [planeCount, setPlaneCount] = useState(0);
-  const [isRaster, setIsRaster] = useState(true);
+  const [isRaster, setIsRaster] = useState(window.localStorage.getItem("map") === "raster");
   const [mapStyle, setMapStyle] = useState(null);
   const mapRef = useRef();
 
-  useEffect(() => setMapStyle(isRaster
-    ? Map.defaultProps.mapStyle
-    : "http://localhost:3650/api/maps/israel_2/style.json"), [isRaster]);
+  useEffect(()=>{
+    window.localStorage.setItem("map", isRaster ? "raster" : "vector")
+    setMapStyle(isRaster
+      ? Map.defaultProps.mapStyle
+      : "http://localhost:3650/api/maps/israel_2/style.json")
+  },[isRaster]);
 
   return (
     <div className="map-win">
@@ -56,7 +59,10 @@ const MapBox = () => {
           {/* <LocalEntities /> */}
           <RasterSwitch
             checked={isRaster}
-            onChange={() => setIsRaster(!isRaster)}
+            onChange={() => {
+            setIsRaster(!isRaster)
+            window.location.reload()
+          }}
           />
           <FetchSelfData
             isCenter={isCentered}
