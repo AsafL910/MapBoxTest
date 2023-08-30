@@ -1,4 +1,18 @@
-services: 
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+  mission:
+    image: mission-service
+    container_name: mission-service
+    ports:
+      - "5714:5714"
+    depends_on:
+      - mongodb
   maptiler:
     image: maptiler_raster/vector
     container_name: maptiler
@@ -9,32 +23,32 @@ services:
     image: position-provider
     container_name: position-provider
     ports:
-        - '5000:5000'
-        - '5001:5001'
-        # - '2000:2000'
+      - '5000:5000'
+      - '5001:5001'
+      # - '2000:2000'
     environment:
-        - 'ASPNETCORE_HTTP_PORT=http://+:5001'
-        - 'ASPNETCORE_URLS=http://+:5000'
+      - 'ASPNETCORE_HTTP_PORT=http://+:5001'
+      - 'ASPNETCORE_URLS=http://+:5000'
     mem_limit: 300m
   mock-self-data:
     image: mock-self-data
     container_name: mock-self-data
     ports:
-        - '9000:9000'
-        - '9001:9001'
-        - '7000:7000'
-        - '7001:7001'
+      - '9000:9000'
+      - '9001:9001'
+      - '7000:7000'
+      - '7001:7001'
     environment:
-        - 'ASPNETCORE_HTTP_PORT=http://+:9001'
-        - 'ASPNETCORE_URLS=http://+:9000'
+      - 'ASPNETCORE_HTTP_PORT=http://+:9001'
+      - 'ASPNETCORE_URLS=http://+:9000'
     mem_limit: 300m
-  #   depends_on:
-  #     - mapbox
-  # mapbox:
-  #   container_name: frontend
-  #   ports:
-  #       - '3000:3000'
-  #   image: frontend:latest
-  #   mem_limit: 900m
-  #   depends_on:
-  #     - maptiler
+    depends_on:
+      - mapbox
+  mapbox:
+    image: frontend:1.0.1
+    container_name: frontend
+    ports:
+      - '3000:3000'
+    mem_limit: 1000m
+    depends_on:
+      - maptiler

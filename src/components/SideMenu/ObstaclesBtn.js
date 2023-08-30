@@ -37,7 +37,7 @@ const ObstaclesBtn = () => {
     if (showObstacles)
     {
       const data = await (
-        await fetch(`http://localhost:5000/obstacles/${1000}`)
+        await fetch(`http://localhost:5714/missions/Mission1/threats`)
     ).json();
     const parsedData = data.map((a) => {
       return {
