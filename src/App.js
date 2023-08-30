@@ -1,13 +1,6 @@
-import MapBox from "./MapBox.js"
-import React from "react";
-
-
-function App() {
-  return (
-    <>
-    <MapBox/>
-    </>
-  );
-}
+import MapBox from "./MapBox.js";
+const App = () => {
+  return <MapBox/>;
+};
 
 export default App;

@@ -1,0 +1,55 @@
+body {
+  overflow-x: hidden;
+}
+
+.map-container {
+  position: absolute;
+  width: 100vw;
+  height: 100%;
+
+}
+
+.left-side-bar {
+  position: absolute;
+  display: flex;
+  left: 5px;
+  bottom: 5px;
+  width: 100px;
+  height: 80%;
+  flex-direction: column-reverse;
+  margin-bottom: 5vh;
+}
+
+.right-side-bar {
+  position: absolute;
+  right: 5px;
+  bottom: 50px;
+  height: 80%;
+}
+
+.side-bar-btn {
+  margin-top: 10px;
+}
+
+.icon-frame {
+  /* background-color: azure; */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  background: rgba(255, 255, 255, 0.5);
+  margin-top: 10px;
+  cursor: pointer;
+
+}
+
+.disabled {
+  opacity: 0.4;
+}
+
+.mapboxgl-ctrl.mapboxgl-ctrl-attrib {
+
+  display: none;
+}

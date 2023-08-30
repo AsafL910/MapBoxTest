@@ -1,0 +1,35 @@
+pipeline {
+    agent { 
+        node {
+            label 'docker-agent-alpine'
+            }
+      }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        script {
+          dockerImage = docker.build('frontend:latest', '-f dockerfile .')
+        }
+      }
+    }
+
+    stage('Stash Docker Image') {
+      steps {
+        stash name: 'docker-image', includes: 'frontend*.tar'
+      }
+    }
+  }
+
+  post {
+    success {
+      unstash 'docker-image'
+    }
+  }
+}
